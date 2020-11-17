@@ -1,0 +1,101 @@
+hydra:
+    run:
+        dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    sweep:
+        dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+        subdir: ${hydra.job.num}
+
+
+private:
+    token: 'any token'
+
+
+model:
+    class_name: timm.create_model
+    params: {model_name: efficientnet_b0, num_classes: '${dataset.num_classes}', pretrained: true}
+
+dataset:
+    data_dir: data/dog-breed
+    num_classes: 120
+    target_fold: 0
+    cv_split:
+        class_name: sklearn.model_selection.StratifiedKFold
+        params: {}
+    batch_size: 32
+    image_size: 224
+    augmentation:
+        train:
+            - class_name: albumentations.Resize
+              params: {height: '${dataset.image_size}', width: '${dataset.image_size}', interpolation: 1, always_apply: true, p: 1.0}
+            - class_name: albumentations.RandomGridShuffle
+              params: {grid: [4, 4], always_apply: true, p: 1.0}
+            - class_name: albumentations.GridDropout
+              params: {ratio: 0.25, unit_size_min: null, unit_size_max: null, holes_number_x: 4, holes_number_y: 4, shift_x: 0, shift_y: 0, random_offset: True, fill_value: 255, mask_fill_value: null, always_apply: false, p: 0.1}
+            - class_name: albumentations.Cutout
+              params: {num_holes: 4, max_h_size: 200, max_w_size: 200, fill_value: 255, always_apply: false, p: 0.5}
+            - class_name: albumentations.GridDistortion
+              params: {num_steps: 4, distort_limit: 0.3, interpolation: 1, border_mode: 4, value: null, mask_value: null, always_apply: false, p: 0.5}
+            - class_name: albumentations.Flip
+              params: {always_apply: false, p: 0.5}
+            - class_name: albumentations.HueSaturationValue
+              params: {hue_shift_limit: 20, sat_shift_limit: 30, val_shift_limit: 20, always_apply: false, p: 0.5}
+            - class_name: albumentations.RandomBrightnessContrast
+              params: {brightness_limit: 0.2, contrast_limit: 0.2, brightness_by_max: true, always_apply: false, p: 0.5}
+            - class_name: albumentations.Normalize
+              params: {mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225], max_pixel_value: 255.0, always_apply: false, p: 1.0}
+        valid: 
+            - class_name: albumentations.Resize
+              params: {height: '${dataset.image_size}', width: '${dataset.image_size}', interpolation: 1, always_apply: false, p: 1.0}
+            - class_name: albumentations.Normalize
+              params: {mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225], max_pixel_value: 255.0, always_apply: false, p: 1.0}
+    dataloader:
+        train: {batch_size: '${dataset.batch_size}', shuffle: true, num_workers: 4, pin_memory: true, drop_last: true}    
+        valid: {batch_size: '${dataset.batch_size}', shuffle: false, num_workers: 4, pin_memory: true, drop_last: true} 
+
+training:
+    loss: 
+        class_name: torch.nn.CrossEntropyLoss
+        params: {}
+    optimizer:
+        class_name: torch.optim.Adam
+        params: {}
+    scheduler:
+        class_name: torch.optim.lr_scheduler.CosineAnnealingLR
+        params: {T_max: 100}
+
+trainer:
+    max_epochs: 10
+    min_epochs: 10
+    max_steps: null
+    min_steps: null
+    #auto_select_gpus: True
+    #accumulate_grad_batches: 1
+    #amp_backend: native
+    #amp_level: O0
+    #auto_scale_batch_size: null # null | binsearch | power
+    #auto_lr_find: false # 'training.learning_rate' # true
+    #deterministic: false
+    #benchmark: true
+    #accelerator: null
+    #check_val_every_n_epoch: 1
+    #default_root_dir: null
+    #profiler: false
+    #fast_dev_run: false
+    gpus: -1
+    #gradient_clip_val: 0.0
+    #log_gpu_memory: null
+    #log_every_n_steps: 50
+    #flush_logs_every_n_steps: 100 # 10
+    #automatic_optimization: true
+    #num_nodes: 1
+    #precision: 32
+    #limit_train_batches: 0.1
+    #limit_val_batches: 0.1
+    #limit_test_batches: 0.1
+
+logging:
+    log_dir: logs
+    tb_logger:
+        save_dir: ${logging.log_dir}
+        name: default
+        version: null
