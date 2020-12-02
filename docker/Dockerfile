@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 LABEL maintainer="@hirune924"
 
-RUN conda update pytorch torchvision torchaudio cudatoolkit=10.1 -c pytorch
+RUN conda install pytorch==1.7.0 torchvision torchaudio cudatoolkit=10.1 -c pytorch
 
 RUN apt-get update --fix-missing && apt-get install -y \
     git libopencv-dev python-openslide unzip 
