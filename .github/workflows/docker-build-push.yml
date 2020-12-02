@@ -4,7 +4,7 @@ on:
   push:
     # Publish `master` as Docker `latest` image.
     branches:
-      - master
+      - main
     # TODO: Change variable to your Docker file path for event trigger.:
     paths: 
       - docker/Dockerfile
