@@ -16,7 +16,6 @@ RUN apt-get update --fix-missing && apt-get install -y \
 #    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ && \
 #    cd .. && rm -rf apex
 
-
 RUN pip install --upgrade pip && \
     pip install pandas scikit-image opencv-python openslide-python \
                 scikit-learn pytorch-lightning imagecodecs tifffile \
