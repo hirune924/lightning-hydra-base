@@ -12,14 +12,14 @@ private:
 
 model:
     class_name: timm.create_model
-    params: {model_name: efficientnet_b0, num_classes: '${dataset.num_classes}', pretrained: true}
+    params: {}
 
 dataset:
     data_dir: data/dog-breed
     num_classes: 120
     target_fold: 0
     cv_split:
-        class_name: sklearn.model_selection.StratifiedKFold
+        class_name: sklearn.model_selection.KFold
         params: {}
     batch_size: 32
     image_size: 224
@@ -61,7 +61,7 @@ training:
         params: {}
     scheduler:
         class_name: torch.optim.lr_scheduler.CosineAnnealingLR
-        params: {T_max: 100}
+        params: {}
 
 trainer:
     max_epochs: 10
