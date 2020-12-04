@@ -1,0 +1,20 @@
+hydra:
+    run:
+        dir: /kqi/output/fold_${dataset.target_fold}
+    sweep:
+        dir: /kqi/output
+        subdir: ${hydra.job.num}
+
+model:
+    class_name: timm.create_model
+    params: {model_name: efficientnet_b0, num_classes: '${dataset.num_classes}', pretrained: true}
+
+dataset:
+    cv_split:
+        class_name: sklearn.model_selection.KFold
+        params: {n_splits: 5, random_state: 2020, shuffle: true}
+
+training:
+    scheduler:
+        class_name: torch.optim.lr_scheduler.CosineAnnealingLR
+        params: {T_max: 100}
